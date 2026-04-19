@@ -59,7 +59,7 @@ public class ReservationsController {
 
     @GetMapping
     public List<ReservationResponse> getAllReservations() {
-        return reservationService.findAll().stream()
+        return reservationService.findForCurrentUser().stream()
                 .map(reservation -> {
                     Optional<FoodListing> deal = foodListingService.findById(reservation.getDealId());
                     Long userId = reservation.getUser() != null ? reservation.getUser().getId() : null;

@@ -4,6 +4,8 @@ import com.rescureat.model.Reservation;
 import com.rescureat.model.User;
 import com.rescureat.repository.ReservationRepository;
 import com.rescureat.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,8 +24,9 @@ public class ReservationService {
         this.userRepository = userRepository;
     }
 
-    public List<Reservation> findAll() {
-        return reservationRepository.findAllWithUser();
+    public List<Reservation> findForCurrentUser() {
+        User user = requireCurrentUser();
+        return reservationRepository.findAllWithUserByUserId(user.getId());
     }
 
     public Reservation create(Long dealId, Long userId) {
@@ -34,5 +37,15 @@ public class ReservationService {
         reservation.setUser(user);
         reservation.setCreatedAt(null);
         return reservationRepository.save(reservation);
+    }
+
+    private User requireCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new IllegalStateException("Unauthenticated user.");
+        }
+        String email = authentication.getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found."));
     }
 }
