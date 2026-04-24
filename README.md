@@ -46,3 +46,47 @@ You need Gradle installed (e.g. via SDKMAN, Homebrew, or your OS package manager
 
 - `src/main/java/com/rescureat/` — application and packages (config, controller, model, repository, service)
 - `src/main/resources/application.properties` — configuration (app name, server port, DB placeholders, JPA settings)
+
+## Auth flow (correct client flow)
+
+Use these endpoints independently:
+- `POST /api/auth/register` creates a user and returns `{ token, user }`
+- `POST /api/auth/login` authenticates existing user and returns `{ token, user }`
+
+### Register
+
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Alice",
+    "email": "alice@example.com",
+    "password": "password123",
+    "role": "USER"
+  }'
+```
+
+### Login (existing user)
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice@example.com",
+    "password": "password123"
+  }'
+```
+
+### Expected auth errors
+
+- Login before register (or wrong password) -> `401` with:
+
+```json
+{ "error": "Invalid credentials" }
+```
+
+- Register with existing email -> `400` with:
+
+```json
+{ "error": "Email already in use" }
+```

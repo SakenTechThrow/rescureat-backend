@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
+    private static final String INVALID_CREDENTIALS_ERROR = "Invalid credentials";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -23,22 +25,11 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest request) {
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("name is required.");
-        }
-        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-            throw new IllegalArgumentException("email is required.");
-        }
-        if (request.getPassword() == null || request.getPassword().length() < 6) {
-            throw new IllegalArgumentException("Password must be at least 6 characters.");
-        }
-        if (request.getRole() == null) {
-            throw new IllegalArgumentException("role is required.");
-        }
+        validateRegisterRequest(request);
 
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email is already registered.");
+            throw new IllegalStateException("Email already in use");
         }
 
         User user = new User();
@@ -53,21 +44,46 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-            throw new IllegalArgumentException("email is required.");
-        }
-        if (request.getPassword() == null) {
-            throw new IllegalArgumentException("password is required.");
-        }
+        validateLoginRequest(request);
 
         String email = request.getEmail().trim().toLowerCase();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
+                .orElseThrow(() -> new SecurityException(INVALID_CREDENTIALS_ERROR));
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password.");
+            throw new SecurityException(INVALID_CREDENTIALS_ERROR);
         }
 
         String token = jwtService.generateToken(user);
         return AuthResponse.of(token, user);
+    }
+
+    private void validateRegisterRequest(RegisterRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("name is required.");
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("email is required.");
+        }
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters.");
+        }
+        if (request.getRole() == null) {
+            throw new IllegalArgumentException("role is required.");
+        }
+    }
+
+    private void validateLoginRequest(LoginRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("email is required.");
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("password is required.");
+        }
     }
 }

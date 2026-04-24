@@ -30,6 +30,8 @@ public class AuthController {
         try {
             AuthResponse body = authService.register(request);
             return ResponseEntity.ok(body);
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
@@ -40,8 +42,10 @@ public class AuthController {
         try {
             AuthResponse body = authService.login(request);
             return ResponseEntity.ok(body);
-        } catch (IllegalArgumentException ex) {
+        } catch (SecurityException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
     }
 }
