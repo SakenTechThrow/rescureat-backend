@@ -66,7 +66,12 @@ public class SecurityConfig {
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toList();
-        config.setAllowedOrigins(allowedOrigins);
+        boolean hasWildcardOrigin = allowedOrigins.stream().anyMatch(origin -> origin.contains("*"));
+        if (hasWildcardOrigin) {
+            config.setAllowedOriginPatterns(allowedOrigins);
+        } else {
+            config.setAllowedOrigins(allowedOrigins);
+        }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
