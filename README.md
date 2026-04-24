@@ -18,7 +18,7 @@ The app now supports environment-driven configuration.
 - `DB_USER`
 - `DB_PASS`
 - `JWT_SECRET` (long random secret)
-- `CORS_ALLOWED_ORIGINS` (comma-separated, e.g. `https://app.example.com,https://admin.example.com`)
+- `CORS_ALLOWED_ORIGINS` (comma-separated, e.g. `https://app.example.com,https://admin.example.com`; use `*` only if you intentionally want wildcard origin-pattern behavior)
 
 ### Local development defaults
 
