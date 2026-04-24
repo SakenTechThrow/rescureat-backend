@@ -29,8 +29,9 @@ This report audits implemented API surface, authn/authz, persistence, and deploy
 - Role model: enum has `STUDENT` and `CAFE_OWNER`; authority is mapped to `ROLE_<role>`.
 - Enforcement is URL-pattern based in `SecurityConfig`.
 
-### Notable security gap
-- `GET /api/reservations` returns all reservations for all users (global list), not scoped to currently authenticated user.
+### Security status update
+- ✅ Fixed: `GET /api/reservations` is now scoped to the authenticated user via `SecurityContext` + repository filtering by user id.
+- ℹ️ Current schema does not track deal ownership, so `CAFE_OWNER` currently receives only their own reservations (not reservations-by-owned-deal).
 
 ## 3) Persistence Verification
 
@@ -63,7 +64,7 @@ This report audits implemented API surface, authn/authz, persistence, and deploy
 
 ## 5) MVP Priority Fix Plan (ordered)
 
-1. Scope reservations to current user (and optional owner/admin views) instead of global list.
+1. Add deal ownership to schema and enforce owner-scoped reservation visibility by owned deal ids.
 2. Enforce role/ownership boundaries for reservation visibility and future updates/cancels.
 3. Remove hardcoded DB creds and JWT fallback secret from defaults; require env vars in production profile.
 4. Add production profile (`application-prod.properties`) and tighten `ddl-auto` strategy (`validate` or migrations).

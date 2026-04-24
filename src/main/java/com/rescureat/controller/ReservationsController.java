@@ -8,7 +8,6 @@ import com.rescureat.service.ReservationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +22,6 @@ import java.util.Optional;
  * REST controller for reservation endpoints.
  */
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/reservations")
 public class ReservationsController {
 
@@ -59,7 +57,7 @@ public class ReservationsController {
 
     @GetMapping
     public List<ReservationResponse> getAllReservations() {
-        return reservationService.findAll().stream()
+        return reservationService.findForCurrentUser().stream()
                 .map(reservation -> {
                     Optional<FoodListing> deal = foodListingService.findById(reservation.getDealId());
                     Long userId = reservation.getUser() != null ? reservation.getUser().getId() : null;

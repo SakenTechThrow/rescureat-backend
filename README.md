@@ -1,92 +1,92 @@
 # RescuEat Backend
 
-Spring Boot backend for RescuEat (food deals API). Uses in-memory data by default; no database required to run.
+Spring Boot backend for RescuEat (food deals API) with PostgreSQL + JWT auth.
 
 ## Requirements
 
-- **Java 17** or later
-- **Gradle** (optional if you use the wrapper)
+- **Java 17**+
+- PostgreSQL (for local run and production)
+- Gradle wrapper included (`./gradlew`)
 
-## Run the application
+## Configuration model
 
-From the project root:
+The app now supports environment-driven configuration.
+
+### Required environment variables (production)
+
+- `DB_URL` (example: `jdbc:postgresql://db-host:5432/rescureat_db`)
+- `DB_USER`
+- `DB_PASS`
+- `JWT_SECRET` (long random secret)
+- `CORS_ALLOWED_ORIGINS` (comma-separated, e.g. `https://app.example.com,https://admin.example.com`)
+
+### Local development defaults
+
+`application.properties` includes local-safe defaults so you can run quickly on your machine:
+- DB defaults to local PostgreSQL URL and dev credentials
+- CORS defaults to `http://localhost:3000,https://rescureat-frontend.vercel.app`
+- JWT secret has a dev-only fallback
+
+For real deployments, use `SPRING_PROFILES_ACTIVE=prod` and set all required env vars.
+
+## Profiles
+
+- **default/dev-ish**: `spring.jpa.hibernate.ddl-auto=update` for local convenience.
+- **prod** (`application-prod.properties`):
+  - `spring.jpa.hibernate.ddl-auto=validate`
+  - fails fast if schema does not match entities
+  - safer for production; pair with explicit DB migrations (Flyway/Liquibase)
+
+## Run locally
+
+1) Ensure PostgreSQL is available.
+2) (Optional) export env vars if you want to override defaults:
+
+```bash
+export DB_URL=jdbc:postgresql://localhost:5432/rescureat_db
+export DB_USER=rescureat_dev
+export DB_PASS=rescureat_dev
+export JWT_SECRET='replace-with-long-random-dev-secret'
+export CORS_ALLOWED_ORIGINS='http://localhost:3000,https://rescureat-frontend.vercel.app'
+```
+
+3) Start app:
 
 ```bash
 ./gradlew bootRun
 ```
 
-(On Windows: `gradlew.bat bootRun`.)
+API base URL: `http://localhost:8080`
 
-The wrapper is included (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`, `gradle-wrapper.properties`), so you don’t need Gradle installed.
+## Deploy (production)
 
-Alternatively, if you have Gradle installed: `gradle bootRun`.
+Set profile and env vars:
 
-The API will be available at **http://localhost:8080**.
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+export DB_URL='jdbc:postgresql://<host>:5432/<db>'
+export DB_USER='<user>'
+export DB_PASS='<pass>'
+export JWT_SECRET='<long-random-secret>'
+export CORS_ALLOWED_ORIGINS='https://app.example.com,https://admin.example.com'
+```
 
-- **All deals:** `GET http://localhost:8080/api/deals`
-- **One deal by id:** `GET http://localhost:8080/api/deals/1`
+Then run:
 
-## Build
+```bash
+java -jar build/libs/rescureat-backend-0.0.1-SNAPSHOT.jar
+```
+
+## Health endpoint
+
+Actuator is enabled with:
+- `GET /actuator/health`
+
+This is suitable for deployment liveness/readiness checks.
+
+## Build and test
 
 ```bash
 ./gradlew build
-```
-
-## Regenerating the Gradle wrapper
-
-If `gradle/wrapper/gradle-wrapper.jar` is missing or you want to upgrade the wrapper (e.g. newer Gradle), run from the project root:
-
-```bash
-gradle wrapper
-```
-
-You need Gradle installed (e.g. via SDKMAN, Homebrew, or your OS package manager). This recreates `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`, and updates `gradle/wrapper/gradle-wrapper.properties`. Then use `./gradlew` as usual.
-
-## Project structure
-
-- `src/main/java/com/rescureat/` — application and packages (config, controller, model, repository, service)
-- `src/main/resources/application.properties` — configuration (app name, server port, DB placeholders, JPA settings)
-
-## Auth flow (correct client flow)
-
-Use these endpoints independently:
-- `POST /api/auth/register` creates a user and returns `{ token, user }`
-- `POST /api/auth/login` authenticates existing user and returns `{ token, user }`
-
-### Register
-
-```bash
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Alice",
-    "email": "alice@example.com",
-    "password": "password123",
-    "role": "USER"
-  }'
-```
-
-### Login (existing user)
-
-```bash
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "alice@example.com",
-    "password": "password123"
-  }'
-```
-
-### Expected auth errors
-
-- Login before register (or wrong password) -> `401` with:
-
-```json
-{ "error": "Invalid credentials" }
-```
-
-- Register with existing email -> `400` with:
-
-```json
-{ "error": "Email already in use" }
+./gradlew test
 ```
