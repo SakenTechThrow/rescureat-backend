@@ -24,7 +24,7 @@ The app now supports environment-driven configuration.
 
 `application.properties` includes local-safe defaults so you can run quickly on your machine:
 - DB defaults to local PostgreSQL URL and dev credentials
-- CORS defaults to `http://localhost:3000`
+- CORS defaults to `http://localhost:3000,https://rescureat-frontend.vercel.app`
 - JWT secret has a dev-only fallback
 
 For real deployments, use `SPRING_PROFILES_ACTIVE=prod` and set all required env vars.
@@ -47,7 +47,7 @@ export DB_URL=jdbc:postgresql://localhost:5432/rescureat_db
 export DB_USER=rescureat_dev
 export DB_PASS=rescureat_dev
 export JWT_SECRET='replace-with-long-random-dev-secret'
-export CORS_ALLOWED_ORIGINS='http://localhost:3000'
+export CORS_ALLOWED_ORIGINS='http://localhost:3000,https://rescureat-frontend.vercel.app'
 ```
 
 3) Start app:

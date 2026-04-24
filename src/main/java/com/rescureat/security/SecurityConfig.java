@@ -24,7 +24,7 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:3000}")
+    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:3000,https://rescureat-frontend.vercel.app}")
     private String corsAllowedOrigins;
 
     @Bean
